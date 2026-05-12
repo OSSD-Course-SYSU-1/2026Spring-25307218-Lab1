@@ -67,6 +67,26 @@
     {
       "name": "clear",
       "value": "清空"
+    },
+    {
+      "name": "current_color",
+      "value": "当前颜色"
+    },
+    {
+      "name": "ruler",
+      "value": "直尺"
+    },
+    {
+      "name": "compass",
+      "value": "圆规"
+    },
+    {
+      "name": "rect_tool",
+      "value": "矩形"
+    },
+    {
+      "name": "shape_tools",
+      "value": "作图工具"
     }
   ]
 }

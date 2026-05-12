@@ -76,5 +76,5 @@ export class CommonConstants {
     static readonly DETENTS: [
         Length,
         Length
-    ] = [550, 600];
+    ] = [650, 750];
 }

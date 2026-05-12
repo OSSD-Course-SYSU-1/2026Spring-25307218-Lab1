@@ -5,6 +5,8 @@ string ballpoint 0x01000004
 string brash 0x01000005
 string clear 0x01000006
 string color 0x01000007
+string compass 0x01000048
+string current_color 0x01000047
 string fountain_pen 0x01000008
 string laser_pointer 0x01000009
 string marker 0x0100000a
@@ -12,8 +14,11 @@ string module_desc 0x0100000b
 string opacity 0x0100000c
 string paint 0x0100000d
 string pencil 0x0100000e
+string rect_tool 0x01000049
 string redo 0x0100000f
 string rubber 0x01000010
+string ruler 0x0100004a
+string shape_tools 0x0100004b
 string thicknesses 0x01000011
 string undo 0x01000012
 color linear_end 0x01000013
@@ -50,6 +55,7 @@ media clear 0x01000030
 media clear_active 0x01000031
 media foreground 0x01000032
 media fountain 0x01000033
+media fountain_active 0x01000045
 media laser 0x01000034
 media layered_image 0x01000035
 media marker 0x01000036
@@ -58,6 +64,7 @@ media minuses 0x01000038
 media paintbrush 0x01000039
 media paintbrush_active 0x0100003a
 media pencils 0x0100003b
+media pencils_active 0x01000046
 media recall 0x0100003c
 media recall_active 0x0100003d
 media redo 0x0100003e

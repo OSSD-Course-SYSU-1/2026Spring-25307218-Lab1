@@ -275,5 +275,33 @@
 			"type":	"profile",
 			"name":	"main_pages",
 			"id":	"0x01000044"
+		}, {
+			"type":	"media",
+			"name":	"fountain_active",
+			"id":	"0x01000045"
+		}, {
+			"type":	"media",
+			"name":	"pencils_active",
+			"id":	"0x01000046"
+		}, {
+			"type":	"string",
+			"name":	"current_color",
+			"id":	"0x01000047"
+		}, {
+			"type":	"string",
+			"name":	"compass",
+			"id":	"0x01000048"
+		}, {
+			"type":	"string",
+			"name":	"rect_tool",
+			"id":	"0x01000049"
+		}, {
+			"type":	"string",
+			"name":	"ruler",
+			"id":	"0x0100004A"
+		}, {
+			"type":	"string",
+			"name":	"shape_tools",
+			"id":	"0x0100004B"
 		}]
 }

@@ -1525,9 +1525,10 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IDraw.ets": {
-      "mtimeMs": 1776762035926.6611,
+      "mtimeMs": 1778585947480.5706,
       "children": [
-        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\Paint.ets"
+        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\Paint.ets",
+        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets"
       ],
       "parent": [
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\pages\\Index.ets",
@@ -1536,11 +1537,12 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets": {
-      "mtimeMs": 1776762035919.6416,
+      "mtimeMs": 1778583073585.3164,
       "children": [],
       "parent": [
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\pages\\Index.ets",
-        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\view\\myPaintSheet.ets"
+        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\view\\myPaintSheet.ets",
+        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IDraw.ets"
       ],
       "error": false
     },
@@ -1555,7 +1557,7 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\common\\CommonConstants.ets": {
-      "mtimeMs": 1776762035860.0952,
+      "mtimeMs": 1778589304915.7617,
       "children": [],
       "parent": [
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\pages\\Index.ets",
@@ -1564,9 +1566,10 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\view\\myPaintSheet.ets": {
-      "mtimeMs": 1776762035900.6206,
+      "mtimeMs": 1778589129467.7314,
       "children": [
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\common\\CommonConstants.ets",
+        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\Paint.ets"
@@ -1577,11 +1580,12 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\pages\\Index.ets": {
-      "mtimeMs": 1776762035885.611,
+      "mtimeMs": 1778589570031.493,
       "children": [
         "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.display.d.ts",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\DrawInvoker.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IDraw.ets",
+        "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IBrush.ets",
         "D:\\open\\custom-canvas-master\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\Paint.ets",

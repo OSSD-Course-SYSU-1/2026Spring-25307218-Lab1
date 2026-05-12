@@ -88,5 +88,5 @@ export class CommonConstants {
   /**
    * Detents.
    */
-  static readonly DETENTS: [Length, Length] = [550, 600];
+  static readonly DETENTS: [Length, Length] = [650, 750];
 }

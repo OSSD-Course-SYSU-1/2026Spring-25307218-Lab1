@@ -7,7 +7,10 @@ interface DrawCanvas_Params {
     redoDraw?: boolean;
     isPaint?: boolean;
     isShow?: boolean;
+    isShapeShow?: boolean;
     isMarker?: boolean;
+    isFountainPen?: boolean;
+    shapeTool?: string;
     scaleValueX?: number;
     scaleValueY?: number;
     pinchValueX?: number;
@@ -23,16 +26,22 @@ interface DrawCanvas_Params {
     mBrush?: IBrush;
     setting?: RenderingContextSettings;
     context?: CanvasRenderingContext2D;
+    offSetting?: RenderingContextSettings;
+    offContext?: CanvasRenderingContext2D;
     drawInvoker?: DrawInvoker;
     path2Db?: Path2D;
     mPath?: DrawPath;
     arr?: number[];
+    offCanvasReady?: boolean;
+    shapeStartX?: number;
+    shapeStartY?: number;
 }
 import display from "@ohos:display";
 import DrawInvoker from "@bundle:com.example.customcanvas/entry/ets/viewmodel/DrawInvoker";
-import DrawPath from "@bundle:com.example.customcanvas/entry/ets/viewmodel/IDraw";
+import DrawPath, { ShapeDraw } from "@bundle:com.example.customcanvas/entry/ets/viewmodel/IDraw";
 import type { IBrush } from "@bundle:com.example.customcanvas/entry/ets/viewmodel/IBrush";
 import NormalBrush from "@bundle:com.example.customcanvas/entry/ets/viewmodel/IBrush";
+import { FountainPenBrush } from "@bundle:com.example.customcanvas/entry/ets/viewmodel/IBrush";
 import Paint from "@bundle:com.example.customcanvas/entry/ets/viewmodel/Paint";
 import { CommonConstants } from "@bundle:com.example.customcanvas/entry/ets/common/CommonConstants";
 import { myPaintSheet } from "@bundle:com.example.customcanvas/entry/ets/view/myPaintSheet";
@@ -49,7 +58,10 @@ class DrawCanvas extends ViewPU {
         this.__redoDraw = new ObservedPropertySimplePU(false, this, "redoDraw");
         this.__isPaint = new ObservedPropertySimplePU(true, this, "isPaint");
         this.__isShow = new ObservedPropertySimplePU(false, this, "isShow");
+        this.__isShapeShow = new ObservedPropertySimplePU(false, this, "isShapeShow");
         this.__isMarker = new ObservedPropertySimplePU(false, this, "isMarker");
+        this.__isFountainPen = new ObservedPropertySimplePU(false, this, "isFountainPen");
+        this.__shapeTool = new ObservedPropertySimplePU('', this, "shapeTool");
         this.__scaleValueX = new ObservedPropertySimplePU(1, this, "scaleValueX");
         this.__scaleValueY = new ObservedPropertySimplePU(1, this, "scaleValueY");
         this.__pinchValueX = new ObservedPropertySimplePU(1, this, "pinchValueX");
@@ -67,10 +79,15 @@ class DrawCanvas extends ViewPU {
         this.addProvidedVar("mBrush", this.__mBrush, false);
         this.setting = new RenderingContextSettings(true);
         this.context = new CanvasRenderingContext2D(this.setting);
+        this.offSetting = new RenderingContextSettings(true);
+        this.offContext = new CanvasRenderingContext2D(this.offSetting);
         this.drawInvoker = new DrawInvoker();
         this.path2Db = new Path2D();
         this.mPath = new DrawPath(this.mPaint, this.path2Db);
         this.arr = [];
+        this.offCanvasReady = false;
+        this.shapeStartX = 0;
+        this.shapeStartY = 0;
         this.setInitiallyProvidedValue(params);
         this.declareWatch("isDrawing", this.createDraw);
         this.finalizeConstruction();
@@ -91,8 +108,17 @@ class DrawCanvas extends ViewPU {
         if (params.isShow !== undefined) {
             this.isShow = params.isShow;
         }
+        if (params.isShapeShow !== undefined) {
+            this.isShapeShow = params.isShapeShow;
+        }
         if (params.isMarker !== undefined) {
             this.isMarker = params.isMarker;
+        }
+        if (params.isFountainPen !== undefined) {
+            this.isFountainPen = params.isFountainPen;
+        }
+        if (params.shapeTool !== undefined) {
+            this.shapeTool = params.shapeTool;
         }
         if (params.scaleValueX !== undefined) {
             this.scaleValueX = params.scaleValueX;
@@ -139,6 +165,12 @@ class DrawCanvas extends ViewPU {
         if (params.context !== undefined) {
             this.context = params.context;
         }
+        if (params.offSetting !== undefined) {
+            this.offSetting = params.offSetting;
+        }
+        if (params.offContext !== undefined) {
+            this.offContext = params.offContext;
+        }
         if (params.drawInvoker !== undefined) {
             this.drawInvoker = params.drawInvoker;
         }
@@ -151,6 +183,15 @@ class DrawCanvas extends ViewPU {
         if (params.arr !== undefined) {
             this.arr = params.arr;
         }
+        if (params.offCanvasReady !== undefined) {
+            this.offCanvasReady = params.offCanvasReady;
+        }
+        if (params.shapeStartX !== undefined) {
+            this.shapeStartX = params.shapeStartX;
+        }
+        if (params.shapeStartY !== undefined) {
+            this.shapeStartY = params.shapeStartY;
+        }
     }
     updateStateVars(params: DrawCanvas_Params) {
     }
@@ -160,7 +201,10 @@ class DrawCanvas extends ViewPU {
         this.__redoDraw.purgeDependencyOnElmtId(rmElmtId);
         this.__isPaint.purgeDependencyOnElmtId(rmElmtId);
         this.__isShow.purgeDependencyOnElmtId(rmElmtId);
+        this.__isShapeShow.purgeDependencyOnElmtId(rmElmtId);
         this.__isMarker.purgeDependencyOnElmtId(rmElmtId);
+        this.__isFountainPen.purgeDependencyOnElmtId(rmElmtId);
+        this.__shapeTool.purgeDependencyOnElmtId(rmElmtId);
         this.__scaleValueX.purgeDependencyOnElmtId(rmElmtId);
         this.__scaleValueY.purgeDependencyOnElmtId(rmElmtId);
         this.__pinchValueX.purgeDependencyOnElmtId(rmElmtId);
@@ -181,7 +225,10 @@ class DrawCanvas extends ViewPU {
         this.__redoDraw.aboutToBeDeleted();
         this.__isPaint.aboutToBeDeleted();
         this.__isShow.aboutToBeDeleted();
+        this.__isShapeShow.aboutToBeDeleted();
         this.__isMarker.aboutToBeDeleted();
+        this.__isFountainPen.aboutToBeDeleted();
+        this.__shapeTool.aboutToBeDeleted();
         this.__scaleValueX.aboutToBeDeleted();
         this.__scaleValueY.aboutToBeDeleted();
         this.__pinchValueX.aboutToBeDeleted();
@@ -233,12 +280,33 @@ class DrawCanvas extends ViewPU {
     set isShow(newValue: boolean) {
         this.__isShow.set(newValue);
     }
+    private __isShapeShow: ObservedPropertySimplePU<boolean>;
+    get isShapeShow() {
+        return this.__isShapeShow.get();
+    }
+    set isShapeShow(newValue: boolean) {
+        this.__isShapeShow.set(newValue);
+    }
     private __isMarker: ObservedPropertySimplePU<boolean>;
     get isMarker() {
         return this.__isMarker.get();
     }
     set isMarker(newValue: boolean) {
         this.__isMarker.set(newValue);
+    }
+    private __isFountainPen: ObservedPropertySimplePU<boolean>;
+    get isFountainPen() {
+        return this.__isFountainPen.get();
+    }
+    set isFountainPen(newValue: boolean) {
+        this.__isFountainPen.set(newValue);
+    }
+    private __shapeTool: ObservedPropertySimplePU<string>;
+    get shapeTool() {
+        return this.__shapeTool.get();
+    }
+    set shapeTool(newValue: string) {
+        this.__shapeTool.set(newValue);
     }
     private __scaleValueX: ObservedPropertySimplePU<number>;
     get scaleValueX() {
@@ -333,10 +401,15 @@ class DrawCanvas extends ViewPU {
     }
     private setting: RenderingContextSettings;
     private context: CanvasRenderingContext2D;
+    private offSetting: RenderingContextSettings;
+    private offContext: CanvasRenderingContext2D;
     private drawInvoker: DrawInvoker;
     private path2Db: Path2D;
     private mPath: DrawPath;
     private arr: number[];
+    private offCanvasReady: boolean;
+    private shapeStartX: number;
+    private shapeStartY: number;
     aboutToAppear(): void {
         this.mPaint = new Paint(CommonConstants.ZERO, CommonConstants.COLOR_STRING, CommonConstants.ONE);
         this.mPaint.setStrokeWidth(CommonConstants.THREE);
@@ -350,16 +423,16 @@ class DrawCanvas extends ViewPU {
                     this.pinchValueX = 0.5;
                     this.scaleValueY = 1;
                     this.pinchValueY = 1;
-                    this.context.clearRect(0, 0, this.context.width, this.context.height);
-                    this.drawInvoker.execute(this.context);
+                    this.refreshOffCanvas();
+                    this.clearTopCanvas();
                 }
                 else if (data === 1) {
                     this.scaleValueX = 1;
                     this.scaleValueY = 1;
                     this.pinchValueX = 1;
                     this.pinchValueY = 1;
-                    this.context.clearRect(0, 0, this.context.width, this.context.height);
-                    this.drawInvoker.execute(this.context);
+                    this.refreshOffCanvas();
+                    this.clearTopCanvas();
                 }
             });
         }
@@ -370,11 +443,30 @@ class DrawCanvas extends ViewPU {
     }
     createDraw() {
         if (this.isDrawing) {
-            this.context.fillStyle = Color.White;
-            this.context.fillRect(CommonConstants.ZERO, CommonConstants.ZERO, this.context.width, this.context.height);
-            this.drawInvoker.execute(this.context);
+            this.clearTopCanvas();
             this.isDrawing = false;
         }
+    }
+    refreshOffCanvas(): void {
+        if (!this.offCanvasReady)
+            return;
+        this.offContext.clearRect(0, 0, this.offContext.width, this.offContext.height);
+        this.offContext.fillStyle = Color.White;
+        this.offContext.fillRect(0, 0, this.offContext.width, this.offContext.height);
+        this.drawInvoker.execute(this.offContext);
+    }
+    appendToOffCanvas(path: DrawPath): void {
+        if (!this.offCanvasReady)
+            return;
+        path.draw(this.offContext);
+    }
+    clearTopCanvas(): void {
+        this.context.clearRect(0, 0, this.context.width, this.context.height);
+    }
+    drawShapePreview(x: number, y: number): void {
+        this.clearTopCanvas();
+        let shape = new ShapeDraw(this.mPaint, this.shapeTool, this.shapeStartX, this.shapeStartY, x, y);
+        shape.draw(this.context);
     }
     /**
      * Add a sketch path.
@@ -390,14 +482,19 @@ class DrawCanvas extends ViewPU {
         this.mPaint.setStrokeWidth(this.strokeWidth);
         this.mPaint.setColor(this.color);
         this.mPaint.setGlobalAlpha(this.alpha);
-        this.mBrush = new NormalBrush();
+        if (this.isFountainPen) {
+            this.mBrush = new FountainPenBrush();
+        }
+        else {
+            this.mBrush = new NormalBrush();
+        }
     }
     /**
      * Undo operation.
      */
     drawOperateUndo(): void {
         this.drawInvoker.undo();
-        this.isDrawing = true;
+        this.refreshOffCanvas();
         if (!this.drawInvoker.canUndo()) {
             this.unDoDraw = false;
         }
@@ -408,7 +505,7 @@ class DrawCanvas extends ViewPU {
      */
     drawOperateRedo(): void {
         this.drawInvoker.redo();
-        this.isDrawing = true;
+        this.refreshOffCanvas();
         if (!this.drawInvoker.canRedo()) {
             this.redoDraw = false;
         }
@@ -419,7 +516,7 @@ class DrawCanvas extends ViewPU {
      */
     clear(): void {
         this.drawInvoker.clear();
-        this.isDrawing = true;
+        this.refreshOffCanvas();
         this.redoDraw = false;
         this.unDoDraw = false;
     }
@@ -432,20 +529,22 @@ class DrawCanvas extends ViewPU {
                 if (isInitialRender) {
                     let componentCall = new myPaintSheet(this, {
                         isMarker: this.__isMarker,
+                        isFountainPen: this.__isFountainPen,
+                        shapeTool: this.__shapeTool,
                         alpha: this.__alpha,
                         percent: this.__percent,
                         color: this.__color,
-                        thicknessesValue: this.__thicknessesValue,
                         strokeWidth: this.__strokeWidth
-                    }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 150, col: 7 });
+                    }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 184, col: 7 });
                     ViewPU.create(componentCall);
                     let paramsLambda = () => {
                         return {
                             isMarker: this.isMarker,
+                            isFountainPen: this.isFountainPen,
+                            shapeTool: this.shapeTool,
                             alpha: this.alpha,
                             percent: this.percent,
                             color: this.color,
-                            thicknessesValue: this.thicknessesValue,
                             strokeWidth: this.strokeWidth
                         };
                     };
@@ -458,6 +557,141 @@ class DrawCanvas extends ViewPU {
         }
         Column.pop();
     }
+    shapeToolSheet(parent = null) {
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Column.backgroundColor(Color.White);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create({ "id": 16777291, "type": 10003, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.fontSize(16);
+            Text.fontColor({ "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.margin({ top: 16, bottom: 12 });
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.justifyContent(FlexAlign.SpaceEvenly);
+            Row.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Row.padding({ left: 24, right: 24, bottom: 20 });
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(80);
+            Column.alignItems(HorizontalAlign.Center);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.width(48);
+            Stack.height(48);
+            Stack.onClick(() => {
+                this.shapeTool = 'line';
+                this.isShapeShow = false;
+            });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create();
+            Text.width(48);
+            Text.height(48);
+            Text.borderRadius(24);
+            Text.backgroundColor(this.shapeTool === 'line' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : '#F1F3F5');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('/');
+            Text.fontSize(22);
+            Text.fontColor(this.shapeTool === 'line' ? Color.White : Color.Black);
+            Text.fontWeight(FontWeight.Bold);
+            Text.rotate({ angle: -30 });
+        }, Text);
+        Text.pop();
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create({ "id": 16777290, "type": 10003, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.fontSize(12);
+            Text.fontColor(this.shapeTool === 'line' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : { "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.margin({ top: 6 });
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(80);
+            Column.alignItems(HorizontalAlign.Center);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.width(48);
+            Stack.height(48);
+            Stack.onClick(() => {
+                this.shapeTool = 'circle';
+                this.isShapeShow = false;
+            });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create();
+            Text.width(48);
+            Text.height(48);
+            Text.borderRadius(24);
+            Text.backgroundColor(this.shapeTool === 'circle' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : '#F1F3F5');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('○');
+            Text.fontSize(22);
+            Text.fontColor(this.shapeTool === 'circle' ? Color.White : Color.Black);
+        }, Text);
+        Text.pop();
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create({ "id": 16777288, "type": 10003, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.fontSize(12);
+            Text.fontColor(this.shapeTool === 'circle' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : { "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.margin({ top: 6 });
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(80);
+            Column.alignItems(HorizontalAlign.Center);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.width(48);
+            Stack.height(48);
+            Stack.onClick(() => {
+                this.shapeTool = 'rect';
+                this.isShapeShow = false;
+            });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create();
+            Text.width(48);
+            Text.height(48);
+            Text.borderRadius(24);
+            Text.backgroundColor(this.shapeTool === 'rect' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : '#F1F3F5');
+        }, Text);
+        Text.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('□');
+            Text.fontSize(22);
+            Text.fontColor(this.shapeTool === 'rect' ? Color.White : Color.Black);
+        }, Text);
+        Text.pop();
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create({ "id": 16777289, "type": 10003, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.fontSize(12);
+            Text.fontColor(this.shapeTool === 'rect' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : { "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.margin({ top: 6 });
+        }, Text);
+        Text.pop();
+        Column.pop();
+        Row.pop();
+        Column.pop();
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Stack.create({ alignContent: Alignment.Bottom });
@@ -466,13 +700,42 @@ class DrawCanvas extends ViewPU {
             Stack.height(CommonConstants.ONE_HUNDRED_PERCENT);
         }, Stack);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
-            Canvas.create(this.context);
+            Canvas.create(this.offContext);
             Canvas.width(CommonConstants.CANVAS_WIDTH);
             Canvas.height(CommonConstants.CANVAS_WIDTH);
             Canvas.backgroundColor({ "id": 125831026, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Canvas.onReady(() => {
+                this.offCanvasReady = true;
+                this.offContext.fillStyle = Color.White;
+                this.offContext.fillRect(0, 0, this.offContext.width, this.offContext.height);
+            });
+        }, Canvas);
+        Canvas.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Canvas.create(this.context);
+            Canvas.width(CommonConstants.CANVAS_WIDTH);
+            Canvas.height(CommonConstants.CANVAS_WIDTH);
             Canvas.onTouch((event: TouchEvent) => {
                 this.clean = false;
                 if (this.index === 1 || event.touches.length > 1) {
+                    return;
+                }
+                if (this.shapeTool !== '') {
+                    if (event.touches.length === 1 && event.touches[0].id === 0 && event.type === TouchType.Down) {
+                        this.shapeStartX = event.touches[0].x;
+                        this.shapeStartY = event.touches[0].y;
+                    }
+                    if (event.touches.length === 1 && event.touches[0].id === 0 && event.type === TouchType.Move) {
+                        this.drawShapePreview(event.touches[0].x, event.touches[0].y);
+                    }
+                    if (event.touches.length === 1 && event.touches[0].id === 0 && event.type === TouchType.Up) {
+                        let shape = new ShapeDraw(this.mPaint, this.shapeTool, this.shapeStartX, this.shapeStartY, event.touches[0].x, event.touches[0].y);
+                        this.add(shape);
+                        this.appendToOffCanvas(shape);
+                        this.clearTopCanvas();
+                        this.redoDraw = false;
+                        this.unDoDraw = true;
+                    }
                     return;
                 }
                 this.arr.push(event.touches[0].x + event.touches[0].y);
@@ -484,20 +747,26 @@ class DrawCanvas extends ViewPU {
                 }
                 if (event.touches.length === 1 && event.touches[0].id === 0 && event.type === TouchType.Move) {
                     this.mBrush.move(this.mPath.path, event.touches[0].x, event.touches[0].y);
-                    this.context.clearRect(0, 0, this.context.width, this.context.height);
-                    this.drawInvoker.execute(this.context);
-                    if (this.arr.length > 4) {
+                    if (this.isFountainPen && this.mBrush instanceof FountainPenBrush) {
+                        this.mPath.isFountainPen = true;
+                        this.mPath.fountainPenPoints = (this.mBrush as FountainPenBrush).points;
+                    }
+                    this.clearTopCanvas();
+                    if (this.isFountainPen || this.arr.length > 4) {
                         this.mPath.draw(this.context);
                     }
                 }
                 if (event.touches.length === 1 && event.touches[0].id === 0 && event.type === TouchType.Up) {
+                    if (this.isFountainPen && this.mBrush instanceof FountainPenBrush) {
+                        this.mPath.isFountainPen = true;
+                        this.mPath.fountainPenPoints = (this.mBrush as FountainPenBrush).points.slice();
+                    }
                     this.add(this.mPath);
+                    this.appendToOffCanvas(this.mPath);
+                    this.clearTopCanvas();
                     this.arr = [];
                     this.redoDraw = false;
                     this.unDoDraw = true;
-                    this.isDrawing = true;
-                    this.context.clearRect(0, 0, this.context.width, this.context.height);
-                    this.drawInvoker.execute(this.context);
                 }
             });
             Canvas.scale({
@@ -511,8 +780,7 @@ class DrawCanvas extends ViewPU {
                 this.index = 1;
             });
             PinchGesture.onActionUpdate((event: GestureEvent) => {
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
+                this.clearTopCanvas();
                 if (event) {
                     this.scaleValueX = this.pinchValueX * event.scale;
                     this.scaleValueY = this.pinchValueY * event.scale;
@@ -521,8 +789,7 @@ class DrawCanvas extends ViewPU {
             PinchGesture.onActionEnd(() => {
                 this.pinchValueX = this.scaleValueX;
                 this.pinchValueY = this.scaleValueY;
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
+                this.clearTopCanvas();
             });
             PinchGesture.pop();
             Gesture.pop();
@@ -540,16 +807,14 @@ class DrawCanvas extends ViewPU {
                 this.index = 1;
             });
             PinchGesture.onActionUpdate((event: GestureEvent) => {
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
+                this.clearTopCanvas();
                 if (event) {
                     this.scaleValueX = this.pinchValueX * event.scale;
                     this.scaleValueY = this.pinchValueY * event.scale;
                 }
             });
             PinchGesture.onActionEnd(() => {
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
+                this.clearTopCanvas();
                 this.pinchValueX = this.scaleValueX;
                 this.pinchValueY = this.scaleValueY;
             });
@@ -559,7 +824,7 @@ class DrawCanvas extends ViewPU {
         Column.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Row.create();
-            Row.justifyContent(FlexAlign.SpaceBetween);
+            Row.justifyContent(FlexAlign.SpaceEvenly);
             Row.alignItems(VerticalAlign.Center);
             Row.zIndex(CommonConstants.TEN);
         }, Row);
@@ -607,6 +872,52 @@ class DrawCanvas extends ViewPU {
                 this.isShow = !this.isShow;
                 this.index = -1;
                 this.arr = [];
+            });
+        }, Button);
+        Button.pop();
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.bindSheet({ value: this.isShapeShow, changeEvent: newValue => { this.isShapeShow = newValue; } }, { builder: () => {
+                    this.shapeToolSheet.call(this);
+                } }, {
+                height: 140,
+                backgroundColor: Color.White,
+                detents: CommonConstants.DETENTS
+            });
+            Stack.width({ "id": 16777257, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Stack.height({ "id": 16777256, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Column.height(CommonConstants.ONE_HUNDRED_PERCENT);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Image.create(this.shapeTool !== '' ? { "id": 16777274, "type": 20000, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : { "id": 16777273, "type": 20000, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Image.width({ "id": 16777251, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Image.height({ "id": 16777251, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Image.margin({ bottom: { "id": 16777244, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } });
+        }, Image);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create({ "id": 16777291, "type": 10003, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.fontSize({ "id": 16777249, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Text.fontColor(this.shapeTool !== '' ? { "id": 16777240, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" } : { "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel({ type: ButtonType.Normal });
+            Button.backgroundColor(Color.Transparent);
+            Button.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Button.height(CommonConstants.ONE_HUNDRED_PERCENT);
+            Button.onClick(() => {
+                if (this.shapeTool !== '') {
+                    this.shapeTool = '';
+                }
+                else {
+                    this.isShapeShow = !this.isShapeShow;
+                }
             });
         }, Button);
         Button.pop();
@@ -678,10 +989,8 @@ class DrawCanvas extends ViewPU {
             Button.enabled(this.unDoDraw);
             Button.width(CommonConstants.ONE_HUNDRED_PERCENT);
             Button.height(CommonConstants.ONE_HUNDRED_PERCENT);
-            Button.onClick(async () => {
+            Button.onClick(() => {
                 this.drawOperateUndo();
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
             });
         }, Button);
         Button.pop();
@@ -715,10 +1024,8 @@ class DrawCanvas extends ViewPU {
             Button.enabled(this.redoDraw);
             Button.width(CommonConstants.ONE_HUNDRED_PERCENT);
             Button.height(CommonConstants.ONE_HUNDRED_PERCENT);
-            Button.onClick(async () => {
+            Button.onClick(() => {
                 this.drawOperateRedo();
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
             });
         }, Button);
         Button.pop();
@@ -751,10 +1058,8 @@ class DrawCanvas extends ViewPU {
             Button.backgroundColor(Color.Transparent);
             Button.width(CommonConstants.ONE_HUNDRED_PERCENT);
             Button.height(CommonConstants.ONE_HUNDRED_PERCENT);
-            Button.onClick(async () => {
+            Button.onClick(() => {
                 this.clear();
-                this.context.clearRect(0, 0, this.context.width, this.context.height);
-                this.drawInvoker.execute(this.context);
                 this.clean = true;
             });
         }, Button);

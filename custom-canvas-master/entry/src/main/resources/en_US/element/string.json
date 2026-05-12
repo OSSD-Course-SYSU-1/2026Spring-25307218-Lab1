@@ -67,6 +67,26 @@
     {
       "name": "clear",
       "value": "clear"
+    },
+    {
+      "name": "current_color",
+      "value": "current"
+    },
+    {
+      "name": "ruler",
+      "value": "ruler"
+    },
+    {
+      "name": "compass",
+      "value": "compass"
+    },
+    {
+      "name": "rect_tool",
+      "value": "rectangle"
+    },
+    {
+      "name": "shape_tools",
+      "value": "shapes"
     }
   ]
 }
