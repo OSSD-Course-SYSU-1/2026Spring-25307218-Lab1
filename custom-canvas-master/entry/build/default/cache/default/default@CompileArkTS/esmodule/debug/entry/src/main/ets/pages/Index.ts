@@ -8,6 +8,7 @@ interface DrawCanvas_Params {
     isPaint?: boolean;
     isShow?: boolean;
     isShapeShow?: boolean;
+    isToolBarCollapsed?: boolean;
     isMarker?: boolean;
     isFountainPen?: boolean;
     shapeTool?: string;
@@ -58,6 +59,9 @@ interface DrawCanvas_Params {
     shapeStartX?: number;
     shapeStartY?: number;
     distributedCanvas?: DistributedCanvas;
+    syncStatus?: string;
+    remoteDeviceCount?: number;
+    currentBp?: string;
 }
 import display from "@ohos:display";
 import DrawInvoker from "@bundle:com.example.customcanvas/entry/ets/viewmodel/DrawInvoker";
@@ -72,6 +76,7 @@ import { textInputSheet } from "@bundle:com.example.customcanvas/entry/ets/view/
 import hilog from "@ohos:hilog";
 import type { BusinessError } from "@ohos:base";
 import DistributedCanvas from "@bundle:com.example.customcanvas/entry/ets/viewmodel/DistributedCanvas";
+import distributedDeviceManager from "@ohos:distributedDeviceManager";
 import { CONTINUE_DRAW_DATA, CONTINUE_SELECTED_INDEX, CONTINUE_SCALE_X, CONTINUE_SCALE_Y, CONTINUE_SHAPE_TOOL, CONTINUE_IS_PAINT, CONTINUE_IS_ERASER, CONTINUE_ERROR } from "@bundle:com.example.customcanvas/entry/ets/entryability/EntryAbility";
 import type { Context } from "@ohos:abilityAccessCtrl";
 class DrawCanvas extends ViewPU {
@@ -86,6 +91,7 @@ class DrawCanvas extends ViewPU {
         this.__isPaint = new ObservedPropertySimplePU(false, this, "isPaint");
         this.__isShow = new ObservedPropertySimplePU(false, this, "isShow");
         this.__isShapeShow = new ObservedPropertySimplePU(false, this, "isShapeShow");
+        this.__isToolBarCollapsed = new ObservedPropertySimplePU(false, this, "isToolBarCollapsed");
         this.__isMarker = new ObservedPropertySimplePU(false, this, "isMarker");
         this.__isFountainPen = new ObservedPropertySimplePU(false, this, "isFountainPen");
         this.__shapeTool = new ObservedPropertySimplePU('', this, "shapeTool");
@@ -138,6 +144,9 @@ class DrawCanvas extends ViewPU {
         this.shapeStartX = 0;
         this.shapeStartY = 0;
         this.distributedCanvas = new DistributedCanvas();
+        this.__syncStatus = new ObservedPropertySimplePU('offline', this, "syncStatus");
+        this.__remoteDeviceCount = new ObservedPropertySimplePU(0, this, "remoteDeviceCount");
+        this.__currentBp = this.createStorageProp('currentBreakpoint', 'sm', "currentBp");
         this.setInitiallyProvidedValue(params);
         this.declareWatch("isDrawing", this.createDraw);
         this.finalizeConstruction();
@@ -160,6 +169,9 @@ class DrawCanvas extends ViewPU {
         }
         if (params.isShapeShow !== undefined) {
             this.isShapeShow = params.isShapeShow;
+        }
+        if (params.isToolBarCollapsed !== undefined) {
+            this.isToolBarCollapsed = params.isToolBarCollapsed;
         }
         if (params.isMarker !== undefined) {
             this.isMarker = params.isMarker;
@@ -311,6 +323,12 @@ class DrawCanvas extends ViewPU {
         if (params.distributedCanvas !== undefined) {
             this.distributedCanvas = params.distributedCanvas;
         }
+        if (params.syncStatus !== undefined) {
+            this.syncStatus = params.syncStatus;
+        }
+        if (params.remoteDeviceCount !== undefined) {
+            this.remoteDeviceCount = params.remoteDeviceCount;
+        }
     }
     updateStateVars(params: DrawCanvas_Params) {
     }
@@ -321,6 +339,7 @@ class DrawCanvas extends ViewPU {
         this.__isPaint.purgeDependencyOnElmtId(rmElmtId);
         this.__isShow.purgeDependencyOnElmtId(rmElmtId);
         this.__isShapeShow.purgeDependencyOnElmtId(rmElmtId);
+        this.__isToolBarCollapsed.purgeDependencyOnElmtId(rmElmtId);
         this.__isMarker.purgeDependencyOnElmtId(rmElmtId);
         this.__isFountainPen.purgeDependencyOnElmtId(rmElmtId);
         this.__shapeTool.purgeDependencyOnElmtId(rmElmtId);
@@ -353,6 +372,9 @@ class DrawCanvas extends ViewPU {
         this.__textColor.purgeDependencyOnElmtId(rmElmtId);
         this.__mPaint.purgeDependencyOnElmtId(rmElmtId);
         this.__mBrush.purgeDependencyOnElmtId(rmElmtId);
+        this.__syncStatus.purgeDependencyOnElmtId(rmElmtId);
+        this.__remoteDeviceCount.purgeDependencyOnElmtId(rmElmtId);
+        this.__currentBp.purgeDependencyOnElmtId(rmElmtId);
     }
     aboutToBeDeleted() {
         this.__isDrawing.aboutToBeDeleted();
@@ -361,6 +383,7 @@ class DrawCanvas extends ViewPU {
         this.__isPaint.aboutToBeDeleted();
         this.__isShow.aboutToBeDeleted();
         this.__isShapeShow.aboutToBeDeleted();
+        this.__isToolBarCollapsed.aboutToBeDeleted();
         this.__isMarker.aboutToBeDeleted();
         this.__isFountainPen.aboutToBeDeleted();
         this.__shapeTool.aboutToBeDeleted();
@@ -393,6 +416,9 @@ class DrawCanvas extends ViewPU {
         this.__textColor.aboutToBeDeleted();
         this.__mPaint.aboutToBeDeleted();
         this.__mBrush.aboutToBeDeleted();
+        this.__syncStatus.aboutToBeDeleted();
+        this.__remoteDeviceCount.aboutToBeDeleted();
+        this.__currentBp.aboutToBeDeleted();
         SubscriberManager.Get().delete(this.id__());
         this.aboutToBeDeletedInternal();
     }
@@ -437,6 +463,13 @@ class DrawCanvas extends ViewPU {
     }
     set isShapeShow(newValue: boolean) {
         this.__isShapeShow.set(newValue);
+    }
+    private __isToolBarCollapsed: ObservedPropertySimplePU<boolean>;
+    get isToolBarCollapsed() {
+        return this.__isToolBarCollapsed.get();
+    }
+    set isToolBarCollapsed(newValue: boolean) {
+        this.__isToolBarCollapsed.set(newValue);
     }
     private __isMarker: ObservedPropertySimplePU<boolean>;
     get isMarker() {
@@ -680,6 +713,27 @@ class DrawCanvas extends ViewPU {
     private shapeStartX: number;
     private shapeStartY: number;
     private distributedCanvas: DistributedCanvas;
+    private __syncStatus: ObservedPropertySimplePU<string>;
+    get syncStatus() {
+        return this.__syncStatus.get();
+    }
+    set syncStatus(newValue: string) {
+        this.__syncStatus.set(newValue);
+    }
+    private __remoteDeviceCount: ObservedPropertySimplePU<number>;
+    get remoteDeviceCount() {
+        return this.__remoteDeviceCount.get();
+    }
+    set remoteDeviceCount(newValue: number) {
+        this.__remoteDeviceCount.set(newValue);
+    }
+    private __currentBp: ObservedPropertyAbstractPU<string>;
+    get currentBp() {
+        return this.__currentBp.get();
+    }
+    set currentBp(newValue: string) {
+        this.__currentBp.set(newValue);
+    }
     aboutToAppear(): void {
         this.mPaint = new Paint(CommonConstants.ZERO, CommonConstants.COLOR_STRING, CommonConstants.ONE);
         this.mPaint.setStrokeWidth(CommonConstants.THREE);
@@ -689,6 +743,8 @@ class DrawCanvas extends ViewPU {
         this.distributedCanvas.init(getContext(this) as Context, this.drawInvoker, () => {
             this.refreshOffCanvas();
             this.clearTopCanvas();
+            this.syncStatus = this.distributedCanvas.getSyncStatus();
+            this.remoteDeviceCount = this.distributedCanvas.getRemoteDeviceCount();
         });
         this.distributedCanvas.startListening();
         let restoreError = AppStorage.get<string>(CONTINUE_ERROR);
@@ -1035,7 +1091,7 @@ class DrawCanvas extends ViewPU {
                         textFontWeight: this.__textFontWeight,
                         textFontStyle: this.__textFontStyle,
                         textColor: this.__textColor
-                    }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 443, col: 7 });
+                    }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 450, col: 7 });
                     ViewPU.create(componentCall);
                     let paramsLambda = () => {
                         return {
@@ -1070,7 +1126,7 @@ class DrawCanvas extends ViewPU {
                         percent: this.__percent,
                         color: this.__color,
                         strokeWidth: this.__strokeWidth
-                    }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 458, col: 7 });
+                    }, undefined, elmtId, () => { }, { page: "entry/src/main/ets/pages/Index.ets", line: 465, col: 7 });
                     ViewPU.create(componentCall);
                     let paramsLambda = () => {
                         return {
@@ -1692,6 +1748,24 @@ class DrawCanvas extends ViewPU {
         Flex.pop();
         Column.pop();
     }
+    discoverDevices(): void {
+        try {
+            let dm: distributedDeviceManager.DeviceManager = distributedDeviceManager.createDeviceManager('com.example.customcanvas');
+            let devices: distributedDeviceManager.DeviceBasicInfo[] = dm.getAvailableDeviceListSync();
+            if (devices.length > 0) {
+                let networkId: string | undefined = devices[0].networkId;
+                if (networkId && networkId.length > 0) {
+                    this.distributedCanvas.setSessionId(networkId);
+                    this.syncStatus = 'synced';
+                    this.remoteDeviceCount = devices.length;
+                }
+            }
+        }
+        catch (error) {
+            let err = error as BusinessError;
+            hilog.error(0x0000, 'Index', `discoverDevices failed: code=${err.code}, message=${err.message}`);
+        }
+    }
     initialRender() {
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Stack.create({ alignContent: Alignment.Bottom });
@@ -1709,6 +1783,55 @@ class DrawCanvas extends ViewPU {
             });
         }, Canvas);
         Canvas.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.syncStatus !== 'offline') {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create(this.syncStatus === 'synced' ? '🟢 已同步' : '🟡 同步中...');
+                        Text.fontSize(12);
+                        Text.fontColor(Color.White);
+                        Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
+                        Text.borderRadius(12);
+                        Text.backgroundColor(0x80000000);
+                        Text.zIndex(100);
+                        Text.position({ x: 8, y: 8 });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            If.create();
+            if (this.syncStatus === 'offline') {
+                this.ifElseBranchUpdateFunction(0, () => {
+                    this.observeComponentCreation2((elmtId, isInitialRender) => {
+                        Text.create('📡 连接设备');
+                        Text.fontSize(12);
+                        Text.fontColor(Color.White);
+                        Text.padding({ left: 8, right: 8, top: 4, bottom: 4 });
+                        Text.borderRadius(12);
+                        Text.backgroundColor(0x80000000);
+                        Text.zIndex(100);
+                        Text.position({ x: 8, y: 8 });
+                        Text.onClick(() => {
+                            this.discoverDevices();
+                        });
+                    }, Text);
+                    Text.pop();
+                });
+            }
+            else {
+                this.ifElseBranchUpdateFunction(1, () => {
+                });
+            }
+        }, If);
+        If.pop();
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Canvas.create(this.context);
             Canvas.width(CommonConstants.CANVAS_WIDTH);
@@ -2124,7 +2247,11 @@ class DrawCanvas extends ViewPU {
             Row.create();
             Row.justifyContent(FlexAlign.SpaceEvenly);
             Row.alignItems(VerticalAlign.Center);
+            Row.padding({ left: 8, right: 8 });
+            Row.backgroundColor({ "id": 125831015, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Row.borderRadius({ topLeft: 16, topRight: 16 });
             Row.zIndex(CommonConstants.TEN);
+            Row.visibility(this.isToolBarCollapsed ? Visibility.None : Visibility.Visible);
         }, Row);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Stack.create();
@@ -2389,6 +2516,69 @@ class DrawCanvas extends ViewPU {
                 this.clear();
                 this.clean = true;
             });
+        }, Button);
+        Button.pop();
+        Stack.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.width({ "id": 16777278, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Stack.height({ "id": 16777277, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Column.height(CommonConstants.ONE_HUNDRED_PERCENT);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('▼');
+            Text.fontSize(16);
+            Text.fontColor({ "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel({ type: ButtonType.Normal });
+            Button.backgroundColor(Color.Transparent);
+            Button.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Button.height(CommonConstants.ONE_HUNDRED_PERCENT);
+            Button.onClick(() => { this.isToolBarCollapsed = true; });
+        }, Button);
+        Button.pop();
+        Stack.pop();
+        Row.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Row.create();
+            Row.justifyContent(FlexAlign.Center);
+            Row.alignItems(VerticalAlign.Center);
+            Row.padding({ left: 8, right: 8 });
+            Row.backgroundColor({ "id": 125831015, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Row.borderRadius({ topLeft: 16, topRight: 16 });
+            Row.zIndex(CommonConstants.TEN);
+            Row.visibility(this.isToolBarCollapsed ? Visibility.Visible : Visibility.None);
+        }, Row);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Stack.create();
+            Stack.width({ "id": 16777278, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+            Stack.height({ "id": 16777277, "type": 10002, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+        }, Stack);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Column.create();
+            Column.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Column.height(CommonConstants.ONE_HUNDRED_PERCENT);
+        }, Column);
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Text.create('▲');
+            Text.fontSize(16);
+            Text.fontColor({ "id": 125830998, "type": 10001, params: [], "bundleName": "com.example.customcanvas", "moduleName": "entry" });
+        }, Text);
+        Text.pop();
+        Column.pop();
+        this.observeComponentCreation2((elmtId, isInitialRender) => {
+            Button.createWithLabel({ type: ButtonType.Normal });
+            Button.backgroundColor(Color.Transparent);
+            Button.width(CommonConstants.ONE_HUNDRED_PERCENT);
+            Button.height(CommonConstants.ONE_HUNDRED_PERCENT);
+            Button.onClick(() => { this.isToolBarCollapsed = false; });
         }, Button);
         Button.pop();
         Stack.pop();

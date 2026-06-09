@@ -26,6 +26,7 @@ import { textInputSheet } from '../view/textInputSheet';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { BusinessError } from '@kit.BasicServicesKit';
 import DistributedCanvas from '../viewmodel/DistributedCanvas';
+import { distributedDeviceManager } from '@kit.DistributedServiceKit';
 import { CONTINUE_DRAW_DATA, CONTINUE_SELECTED_INDEX, CONTINUE_SCALE_X, CONTINUE_SCALE_Y,
   CONTINUE_SHAPE_TOOL, CONTINUE_IS_PAINT, CONTINUE_IS_ERASER, RESTORE_KEY, CONTINUE_ERROR }
   from '../entryability/EntryAbility';
@@ -40,6 +41,7 @@ struct DrawCanvas {
   @State isPaint: boolean = false;
   @State isShow: boolean = false;
   @State isShapeShow: boolean = false;
+  @State isToolBarCollapsed: boolean = false;
   @State isMarker: boolean = false;
   @State isFountainPen: boolean = false;
   @State shapeTool: string = '';
@@ -90,6 +92,9 @@ struct DrawCanvas {
   private shapeStartX: number = 0;
   private shapeStartY: number = 0;
   private distributedCanvas: DistributedCanvas = new DistributedCanvas();
+  @State syncStatus: string = 'offline';
+  @State remoteDeviceCount: number = 0;
+  @StorageProp('currentBreakpoint') currentBp: string = 'sm';
 
 
   aboutToAppear(): void {
@@ -101,6 +106,8 @@ struct DrawCanvas {
     this.distributedCanvas.init(getContext(this) as Context, this.drawInvoker, () => {
       this.refreshOffCanvas();
       this.clearTopCanvas();
+      this.syncStatus = this.distributedCanvas.getSyncStatus();
+      this.remoteDeviceCount = this.distributedCanvas.getRemoteDeviceCount();
     });
     this.distributedCanvas.startListening();
     let restoreError = AppStorage.get<string>(CONTINUE_ERROR);
@@ -886,6 +893,25 @@ struct DrawCanvas {
     .backgroundColor(Color.White)
   }
 
+  discoverDevices(): void {
+    try {
+      let dm: distributedDeviceManager.DeviceManager =
+        distributedDeviceManager.createDeviceManager('com.example.customcanvas');
+      let devices: distributedDeviceManager.DeviceBasicInfo[] = dm.getAvailableDeviceListSync();
+      if (devices.length > 0) {
+        let networkId: string | undefined = devices[0].networkId;
+        if (networkId && networkId.length > 0) {
+          this.distributedCanvas.setSessionId(networkId);
+          this.syncStatus = 'synced';
+          this.remoteDeviceCount = devices.length;
+        }
+      }
+    } catch (error) {
+      let err = error as BusinessError;
+      hilog.error(0x0000, 'Index', `discoverDevices failed: code=${err.code}, message=${err.message}`);
+    }
+  }
+
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Canvas(this.offContext)
@@ -895,6 +921,31 @@ struct DrawCanvas {
         .onReady(() => {
           this.offCanvasReady = true;
         })
+
+      if (this.syncStatus !== 'offline') {
+        Text(this.syncStatus === 'synced' ? '🟢 已同步' : '🟡 同步中...')
+          .fontSize(12)
+          .fontColor(Color.White)
+          .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+          .borderRadius(12)
+          .backgroundColor(0x80000000)
+          .zIndex(100)
+          .position({ x: 8, y: 8 })
+      }
+
+      if (this.syncStatus === 'offline') {
+        Text('📡 连接设备')
+          .fontSize(12)
+          .fontColor(Color.White)
+          .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+          .borderRadius(12)
+          .backgroundColor(0x80000000)
+          .zIndex(100)
+          .position({ x: 8, y: 8 })
+          .onClick(() => {
+            this.discoverDevices();
+          })
+      }
 
       Canvas(this.context)
         .width(CommonConstants.CANVAS_WIDTH)
@@ -1492,10 +1543,57 @@ struct DrawCanvas {
         }
         .width($r('app.float.paint_width'))
         .height($r('app.float.paint_height'))
+
+        Stack() {
+          Column() {
+            Text('▼')
+              .fontSize(16)
+              .fontColor($r('sys.color.mask_secondary'))
+          }
+          .width(CommonConstants.ONE_HUNDRED_PERCENT)
+          .height(CommonConstants.ONE_HUNDRED_PERCENT)
+          Button({ type: ButtonType.Normal })
+            .backgroundColor(Color.Transparent)
+            .width(CommonConstants.ONE_HUNDRED_PERCENT)
+            .height(CommonConstants.ONE_HUNDRED_PERCENT)
+            .onClick(() => { this.isToolBarCollapsed = true; })
+        }
+        .width($r('app.float.paint_width'))
+        .height($r('app.float.paint_height'))
       }
       .justifyContent(FlexAlign.SpaceEvenly)
       .alignItems(VerticalAlign.Center)
+      .padding({ left: 8, right: 8 })
+      .backgroundColor($r('sys.color.comp_background_focus'))
+      .borderRadius({ topLeft: 16, topRight: 16 })
       .zIndex(CommonConstants.TEN)
+      .visibility(this.isToolBarCollapsed ? Visibility.None : Visibility.Visible)
+
+      Row() {
+        Stack() {
+          Column() {
+            Text('▲')
+              .fontSize(16)
+              .fontColor($r('sys.color.mask_secondary'))
+          }
+          .width(CommonConstants.ONE_HUNDRED_PERCENT)
+          .height(CommonConstants.ONE_HUNDRED_PERCENT)
+          Button({ type: ButtonType.Normal })
+            .backgroundColor(Color.Transparent)
+            .width(CommonConstants.ONE_HUNDRED_PERCENT)
+            .height(CommonConstants.ONE_HUNDRED_PERCENT)
+            .onClick(() => { this.isToolBarCollapsed = false; })
+        }
+        .width($r('app.float.paint_width'))
+        .height($r('app.float.paint_height'))
+      }
+      .justifyContent(FlexAlign.Center)
+      .alignItems(VerticalAlign.Center)
+      .padding({ left: 8, right: 8 })
+      .backgroundColor($r('sys.color.comp_background_focus'))
+      .borderRadius({ topLeft: 16, topRight: 16 })
+      .zIndex(CommonConstants.TEN)
+      .visibility(this.isToolBarCollapsed ? Visibility.Visible : Visibility.None)
     }
     .backgroundColor($r('sys.color.comp_background_focus'))
     .width(CommonConstants.ONE_HUNDRED_PERCENT)

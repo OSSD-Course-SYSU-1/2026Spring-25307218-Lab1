@@ -1726,12 +1726,10 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\DrawInvoker.ets": {
-      "mtimeMs": 1780378584545.943,
+      "mtimeMs": 1780392372406.6714,
       "children": [
-        "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.util.List.d.ts",
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IDraw.ets",
-        "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.hilog.d.ts",
-        "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.base.d.ts"
+        "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.hilog.d.ts"
       ],
       "parent": [
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\pages\\Index.ets",
@@ -1741,10 +1739,7 @@
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\DistributedFileManager.ets",
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\SocketCanvas.ets"
       ],
-      "error": true,
-      "errorCodes": [
-        28040
-      ]
+      "error": false
     },
     "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\IDraw.ets": {
       "mtimeMs": 1780378532804.1528,
@@ -1815,7 +1810,7 @@
       "error": false
     },
     "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\pages\\Index.ets": {
-      "mtimeMs": 1780378953616.1099,
+      "mtimeMs": 1780393068319.04,
       "children": [
         "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.display.d.ts",
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\DrawInvoker.ets",
@@ -1830,6 +1825,7 @@
         "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.hilog.d.ts",
         "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.base.d.ts",
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\viewmodel\\DistributedCanvas.ets",
+        "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.distributedDeviceManager.d.ts",
         "D:\\open\\custom-canvas-master2\\custom-canvas-master\\entry\\src\\main\\ets\\entryability\\EntryAbility.ets",
         "D:\\DevEco Studio\\sdk\\default\\openharmony\\ets\\api\\@ohos.abilityAccessCtrl.d.ts"
       ],

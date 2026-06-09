@@ -1,69 +1,30 @@
-import List from "@ohos:util.List";
 import DrawPath, { ShapeDraw, TextDraw, DrawPathData, TouchPointData, FountainPenPointData } from "@bundle:com.example.customcanvas/entry/ets/viewmodel/IDraw";
-import hilog from "@ohos:hilog";
-import type { BusinessError } from "@ohos:base";
 export default class DrawInvoker {
-    // Draw list.
-    private drawPathList: List<DrawPath> = new List<DrawPath>();
-    // Redo list.
-    private redoList: Array<DrawPath> = new Array<DrawPath>();
+    private drawPathList: DrawPath[] = [];
+    private redoList: DrawPath[] = [];
     add(command: DrawPath): void {
-        try {
-            this.drawPathList.add(command);
-        }
-        catch (error) {
-            let err = error as BusinessError;
-            hilog.error(0x0000, 'DrawInvoker', `list add failed. code=${err.code}, message=${err.message}`);
-        }
+        this.drawPathList.push(command);
         this.redoList = [];
     }
     clear(): void {
-        try {
-            this.drawPathList.clear();
-        }
-        catch (error) {
-            let err = error as BusinessError;
-            hilog.error(0x0000, 'DrawInvoker', `list clear failed. code=${err.code}, message=${err.message}`);
-        }
+        this.drawPathList = [];
         this.redoList = [];
     }
     undo(): void {
         if (this.drawPathList.length > 0) {
-            try {
-                let undo: DrawPath = this.drawPathList.get(this.drawPathList.length - 1);
-                this.drawPathList.removeByIndex(this.drawPathList.length - 1);
-                this.redoList.push(undo);
-            }
-            catch (error) {
-                let err = error as BusinessError;
-                hilog.error(0x0000, 'DrawInvoker', `undo failed. code=${err.code}, message=${err.message}`);
-            }
+            let undo: DrawPath = this.drawPathList.pop()!;
+            this.redoList.push(undo);
         }
     }
     redo(): void {
         if (this.redoList.length > 0) {
-            let redoCommand = this.redoList[this.redoList.length - 1];
-            this.redoList.pop();
-            try {
-                this.drawPathList.add(redoCommand);
-            }
-            catch (error) {
-                let err = error as BusinessError;
-                hilog.error(0x0000, 'DrawInvoker', `list add failed. code=${err.code}, message=${err.message}`);
-            }
+            let redoCommand: DrawPath = this.redoList.pop()!;
+            this.drawPathList.push(redoCommand);
         }
     }
     execute(context: CanvasRenderingContext2D): void {
-        if (this.drawPathList !== null) {
-            try {
-                this.drawPathList.forEach((element: DrawPath) => {
-                    element.draw(context);
-                });
-            }
-            catch (error) {
-                let err = error as BusinessError;
-                hilog.error(0x0000, 'DrawInvoker', `execute failed. code=${err.code}, message=${err.message}`);
-            }
+        for (let i = 0; i < this.drawPathList.length; i++) {
+            this.drawPathList[i].draw(context);
         }
     }
     canRedo(): boolean {
@@ -74,19 +35,13 @@ export default class DrawInvoker {
     }
     removeAt(index: number): void {
         if (index >= 0 && index < this.drawPathList.length) {
-            try {
-                this.drawPathList.removeByIndex(index);
-            }
-            catch (error) {
-                let err = error as BusinessError;
-                hilog.error(0x0000, 'DrawInvoker', `removeAt failed. code=${err.code}, message=${err.message}`);
-            }
+            this.drawPathList.splice(index, 1);
             this.redoList = [];
         }
     }
     getAt(index: number): DrawPath | null {
         if (index >= 0 && index < this.drawPathList.length) {
-            return this.drawPathList.get(index);
+            return this.drawPathList[index];
         }
         return null;
     }
@@ -95,8 +50,7 @@ export default class DrawInvoker {
     }
     findShapeAt(x: number, y: number): number {
         for (let i = this.drawPathList.length - 1; i >= 0; i--) {
-            let element = this.drawPathList.get(i);
-            if (element.hitTest(x, y)) {
+            if (this.drawPathList[i].hitTest(x, y)) {
                 return i;
             }
         }
@@ -105,19 +59,18 @@ export default class DrawInvoker {
     serializeAll(): string {
         let items: DrawPathData[] = [];
         for (let i = 0; i < this.drawPathList.length; i++) {
-            let element = this.drawPathList.get(i);
-            items.push(element.toJSON());
+            items.push(this.drawPathList[i].toJSON());
         }
         return JSON.stringify(items);
     }
     deserializeAll(json: string): void {
         this.clear();
-        let rawItems = JSON.parse(json) as Array<Record<string, Object>>;
+        let rawItems = JSON.parse(json) as Array<Record<string, string | number | boolean | object>>;
         for (let i = 0; i < rawItems.length; i++) {
             let raw = rawItems[i];
             let type = raw['type'] as string;
             let data = new DrawPathData();
-            let p = raw['paint'] as Record<string, Object>;
+            let p = raw['paint'] as Record<string, string | number | boolean | object>;
             data.paint.lineWidth = p['lineWidth'] as number;
             data.paint.strokeStyle = p['strokeStyle'] as string;
             data.paint.globalAlpha = p['globalAlpha'] as number;
@@ -147,7 +100,7 @@ export default class DrawInvoker {
             else {
                 data.type = 'drawpath';
                 data.isFountainPen = raw['isFountainPen'] as boolean;
-                let ptsArr = raw['touchPoints'] as Array<Record<string, Object>>;
+                let ptsArr = raw['touchPoints'] as Array<Record<string, string | number | boolean | object>>;
                 for (let j = 0; j < ptsArr.length; j++) {
                     let pt = ptsArr[j];
                     let tpd = new TouchPointData();
@@ -155,7 +108,7 @@ export default class DrawInvoker {
                     tpd.y = pt['y'] as number;
                     data.touchPoints.push(tpd);
                 }
-                let fpArr = raw['fountainPenPoints'] as Array<Record<string, Object>>;
+                let fpArr = raw['fountainPenPoints'] as Array<Record<string, string | number | boolean | object>>;
                 for (let j = 0; j < fpArr.length; j++) {
                     let fpd = new FountainPenPointData();
                     let fp = fpArr[j];

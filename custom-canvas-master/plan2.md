@@ -1,6 +1,6 @@
 # Custom Canvas 跨设备投送计划
 
-> 最后更新：2026-06-01 | 版本：v2.1.0
+> 最后更新：2026-06-02 | 版本：v2.2.0
 
 ---
 
@@ -198,6 +198,9 @@ Phase 1 (序列化基础)  ──►  Phase 2 (UIAbility流转)  ──►  Phas
 - [x] setSessionId 设备发现+连接+断开+运行时权限请求
 - [x] deploy.ps1 + deploy.bat 跨设备部署脚本
 - [x] hdc 跨模拟器安装并启动成功
+- [x] remote-push.ps1 远程安装脚本（hdc tconn 直连远程模拟器，无需传文件到远程主机）
+- [x] 撤销/重做修复（isUndoRedoAction 防穿透 + arr.length 检查 + DrawInvoker List→Array）
+- [x] 工具栏收缩功能（isToolBarCollapsed + ▼收起/▲展开）
 
 ---
 
@@ -378,6 +381,7 @@ Phase 1 (序列化基础)  ──►  Phase 2 (UIAbility流转)  ──►  Phas
 | 2026-05-30 | Phase 3 完成：分布式数据实时同步+增量变更+同步状态UI |
 | 2026-05-30 | Phase 4 完成：多用户光标+OT冲突解决+评论批注+版本历史+分布式文件共享 |
 | 2026-06-01 | 补充：删除评论功能+保存UI完善+setSessionId实现+hdc跨设备部署+DISTRIBUTED_DATASYNC权限 |
+| 2026-06-02 | 补充：remote-push.ps1远程安装+撤销修复(List→Array+防穿透)+工具栏收缩 |
 
 ---
 
