@@ -25,7 +25,7 @@
 		"type":	"entry",
 		"description":	"$string:module_desc",
 		"mainElement":	"EntryAbility",
-		"deviceTypes":	["phone"],
+		"deviceTypes":	["phone", "tablet", "2in1"],
 		"deliveryWithInstall":	true,
 		"installationFree":	false,
 		"pages":	"$profile:main_pages",
@@ -38,20 +38,31 @@
 				"startWindowIcon":	"$media:startIcon",
 				"startWindowBackground":	"$color:start_window_background",
 				"exported":	true,
+				"continuable":	true,
+				"orientation":	"auto_rotation",
 				"skills":	[{
 						"entities":	["entity.system.home"],
 						"actions":	["action.system.home"]
 					}],
 				"descriptionId":	16777218,
-				"iconId":	16777269,
+				"iconId":	16777294,
 				"labelId":	16777219,
-				"startWindowIconId":	16777282,
-				"startWindowBackgroundId":	16777239
+				"startWindowIconId":	16777308,
+				"startWindowBackgroundId":	16777260
+			}],
+		"requestPermissions":	[{
+				"name":	"ohos.permission.DISTRIBUTED_DATASYNC",
+				"reason":	"$string:distributed_datasync_reason",
+				"usedScene":	{
+					"abilities":	["EntryAbility"],
+					"when":	"inuse"
+				},
+				"reasonId":	16777354
 			}],
 		"packageName":	"entry",
 		"virtualMachine":	"ark12.0.6.0",
 		"compileMode":	"esmodule",
 		"dependencies":	[],
-		"descriptionId":	16777227
+		"descriptionId":	16777238
 	}
 }
